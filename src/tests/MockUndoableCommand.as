@@ -1,38 +1,52 @@
-package tests {
+package tests
+{
+
 	import org.robotlegs.utilities.undoablecommand.UndoableCommand;
-	
-	
+
 	/**
 	 * @private
 	 */
-	public class MockUndoableCommand extends UndoableCommand {
-		
+	public class MockUndoableCommand extends UndoableCommand
+	{
+
+		public static const DONE : String = "done";
+
+		public static const UNDONE : String = "undone";
+
 		/**
-		 * Reference to some array to be tested on.
+		 * @private
 		 */
-		public var testArray:Array;
-		public var shouldCancel:Boolean = false;
-		
-		/**
-		 * Cause some change to the array
-		 */
-		override protected function doExecute():void {
-			if (shouldCancel) {
-				cancel();
-				return;
-			}
-			this.testArray.push(new Object());
-			super.doExecute();
+		private var _state : String;
+
+
+		public function MockUndoableCommand()
+		{
+			_state = null;
 		}
-		
+
+
+		override public function execute() : void
+		{
+			super.execute();
+			_state = DONE;
+		}
+
+
+		override public function unexecute() : void
+		{
+			super.unexecute();
+			_state = UNDONE;
+		}
+
+
 		/**
-		 * Undo the change on the array
+		 * get the current state of the command
+		 * 
+		 * @return String the current state: null, DONE or UNDONE 
 		 */
-		override protected function undoExecute():void {
-			// pop() isn't the best undo is it?
-			// will do for now.
-			this.testArray.pop();
-			super.undoExecute();
+		public function get state() : String
+		{
+			return _state;
 		}
 	}
 }

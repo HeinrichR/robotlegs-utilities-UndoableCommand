@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<project name="robotlegs-utility-undoablecommand" basedir="." default="compile">
+<!-- set up a prefix for all environment variables -->
+  <property environment="env."/>
+<!-- load user properties to override defaults -->
+  <property file="user.properties"/>
+<!-- System environment must contain FLEX_HOME variable that points to Flex SDK -->
+  <property name="FLEX_HOME" location="${env.FLEX_HOME}"/>
+<!-- identify properties file -->
+  <property file="build.properties"/>
+<!-- Set up FlexUnit Ant tasks -->
+  <taskdef resource="flexUnitTasks.tasks" classpath="${lib.loc}/flexUnitTasks.jar"/>
+<!-- Compile Release SWC -->
+  <target name="compile">
+    <echo>[compile] Compiling release SWC</echo>
+    <echo>[compile] Using Flex SDK at: ${FLEX_HOME}</echo>
+    <java jar="${FLEX_HOME}/lib/compc.jar" dir="${FLEX_HOME}/frameworks" fork="true" failonerror="true">
+<!-- Build our SWC with a versioned name. -->
+      <arg value="-output=${bin.loc}/undoablecommmand.swc"/>
+<!-- We want all the org package classes in the SWC being built. -->
+      <arg value="-include-sources=${main.src.loc}/org"/>
+<!-- Include classes from SWCs in this folder, but only the ones we use. -->
+      <!-- <arg value="-library-path+=${lib.loc}"/> -->
+<!-- Keep the magic alive. -->
+      <arg value="-keep-as3-metadata+=Inject"/>
+      <arg value="-keep-as3-metadata+=PostConstruct" />
+<!-- Boolean mosh pit! -->
+      <arg value="-incremental=true"/>
+      <arg value="-static-link-runtime-shared-libraries=true"/>
+      <arg value="-verbose-stacktraces=true"/>
+      <arg value="-headless-server=true"/>
+    </java>
+    <echo>[compile] Release SWC undoablecommmand.swc created successfully</echo>
+  </target>
+<!-- run test with ui -->
+  <target name="testUI">
+    <echo>[test] Build Unit Tests (GUI)</echo>
+<!-- Compile TestRunner.mxml as a SWF -->
+    <java jar="${FLEX_HOME}/lib/mxmlc.jar" dir="${FLEX_HOME}/frameworks" fork="true" failonerror="true">
+      <arg value="${main.src.loc}/FlexUnitApplication.mxml"/>
+      <arg value="-source-path=${main.src.loc}"/>
+<!-- Flash those sweet legs. Blink and you'll miss 'em. -->
+      <arg value="-output=${bin.loc}/UndoableCommandTestRunnerUI.swf"/>
+      <arg value="-default-size=1024,600"/>
+      <arg value="-default-background-color=0x333333"/>
+<!-- Include classes from SWCs in this folder, but only the ones we use. -->
+      <arg value="-library-path+=${lib.loc}"/>
+<!-- So true. -->
+      <arg value="-incremental=true"/>
+      <arg value="-verbose-stacktraces=true"/>
+    </java>
+    <echo>[test] Finished building Unit Tests (GUI)</echo>
+  </target>
+</project>

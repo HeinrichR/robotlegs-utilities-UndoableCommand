@@ -1,98 +1,91 @@
 package tests
 {
-	import flash.events.EventDispatcher;
-	
-	import flexunit.framework.Assert;
-	
-	import org.robotlegs.utilities.undoablecommand.UndoableCommandBase;
-	
+
+	import org.flexunit.asserts.assertEquals;
+	import org.flexunit.asserts.assertNull;
+	import org.robotlegs.utilities.undoablecommand.CommandHistory;
+
 	/**
 	 * @private
 	 */
 	public class TestUndoableCommand
 	{
-		// Reference declaration for class to test
-		private var _undoableCommand:UndoableCommandBase;
-		
-		private var testArray:Array;
-		private var testObject:Object;
-		private var eventBus:EventDispatcher;
-		
-		private function doStuff():void {
-			testArray.push(testObject);
-		}
-		
-		private function undoStuff():void {
-			testArray.pop();
-		}
-		
+
+		private var command : MockUndoableCommand;
+
+		private var history : CommandHistory;
+
 		[Before]
-		public function setupTests():void {
-			testArray = new Array();
-			eventBus = new EventDispatcher();
-			_undoableCommand = new UndoableCommandBase(doStuff, undoStuff);
-			_undoableCommand.eventDispatcher = eventBus;
-		}
-		
-		[After]
-		public function reset():void {
-			_undoableCommand = null;
-			testArray = null;
-			eventBus = null;
-		}
-		
-		[Test]
-		public function testInitialisation():void {
-			Assert.assertNotNull(_undoableCommand);
-			Assert.assertNotNull(testArray);
-		}
-		
-		[Test]
-		public function testExecute():void {
-			_undoableCommand.execute();
-			Assert.assertEquals(testArray.length, 1);
-		}
-		
-		[Test]
-		public function testUndo():void {
-			_undoableCommand.execute();
-			Assert.assertEquals(testArray.length, 1);
-			_undoableCommand.undo();
-			Assert.assertEquals(testArray.length, 0);
-		}
-		
-		[Test]
-		public function testExecuteMultiple():void {
-			_undoableCommand.execute();	
-			_undoableCommand.execute();
-			_undoableCommand.execute();
-			Assert.assertEquals(testArray.length, 1);	
-		}
-		
-		[Test]
-		public function testUndoMultiple():void {
-			_undoableCommand.execute();	
-			_undoableCommand.undo();
-			_undoableCommand.undo();
-			_undoableCommand.undo();
-			Assert.assertEquals(testArray.length, 0);
-		}
-		
-		[Test]
-		public function testUndoNothingToUndo():void {
-			_undoableCommand.undo();
-			Assert.assertEquals(testArray.length, 0);
-		}
-		
-		[Test]
-		public function testDefaultFunctions():void {
-			var command:MockUndoableCommandBase = new MockUndoableCommandBase();
-			MockUndoableCommandBase.testArray = testArray;	
-			command.execute();	
-			Assert.assertEquals(testArray.length, 1);
-			command.undo();	
-			Assert.assertEquals(testArray.length, 0);
+		public function runBeforeEachTest() : void
+		{
+			command = new MockUndoableCommand();
+			history = new CommandHistory();
 		}
 
+
+		[After]
+		public function runAfterEachTest() : void
+		{
+			command = null;
+			history = null;
+		}
+
+
+		[Test]
+		public function testConstructedState() : void
+		{
+			assertNull("constructed state fail", command.state);
+		}
+
+
+		[Test]
+		public function testUndoneState() : void
+		{
+			command.unexecute();
+			assertEquals("undone state fail", MockUndoableCommand.UNDONE, command.state);
+		}
+
+
+		[Test]
+		public function testDoneState() : void
+		{
+			command.execute();
+			assertEquals("done state fail", MockUndoableCommand.DONE, command.state);
+		}
+		
+		[Test]
+		public function testAutoAdd() : void
+		{
+			command.history = history;
+			command.execute();
+			assertEquals("num undos fail after autoAdd", 1, history.undoLevels);
+			assertEquals("num redos fail after autoAdd", 0, history.redoLevels);
+			assertEquals("done state fail", MockUndoableCommand.DONE, command.state);
+		}
+		
+		
+		[Test]
+		public function testAutoAddUndo() : void
+		{
+			command.history = history;
+			command.execute();
+			history.undo();
+			assertEquals("num undos fail after autoAdd, undo", 0, history.undoLevels);
+			assertEquals("num redos fail after autoAdd, undo", 1, history.redoLevels);
+			assertEquals("done state fail", MockUndoableCommand.UNDONE, command.state);
+		}
+		
+		
+		[Test]
+		public function testAutoAddUndoRedo() : void
+		{
+			command.history = history;
+			command.execute();
+			history.undo();
+			history.redo();
+			assertEquals("num undos fail after autoAdd, undo, redo", 1, history.undoLevels);
+			assertEquals("num redos fail after autoAdd, undo, redo", 0, history.redoLevels);
+			assertEquals("done state fail", MockUndoableCommand.DONE, command.state);
+		}
 	}
 }

@@ -1,297 +1,151 @@
 package tests
 {
-	import flash.events.EventDispatcher;
-	
-	import flexunit.framework.Assert;
-	
+
+	import org.flexunit.asserts.assertEquals;
+	import org.flexunit.asserts.assertFalse;
+	import org.flexunit.asserts.assertNotNull;
+	import org.flexunit.asserts.assertTrue;
 	import org.robotlegs.utilities.undoablecommand.CommandHistory;
-	
+	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
+
 	/**
 	 * @private
 	 */
 	public class TestHistory
 	{
-		// Reference declaration for class to test
-		private var _testHistory : CommandHistory;
-		private var testArray:Array;
-		
+
+		private var history : ICommandHistory;
+
+		private var command1 : MockUndoableCommand;
+
+		private var command2 : MockUndoableCommand;
+
+
 		[Before]
-		public function setupTests():void {
-			_testHistory = new CommandHistory();
-			_testHistory.eventDispatcher = new EventDispatcher();
-			testArray = new Array();
-			MockUndoableCommandBase.testArray = testArray;
-			
+		public function runBeforeEachTest() : void
+		{
+			history = new CommandHistory();
+			command1 = new MockUndoableCommand();
+			command2 = new MockUndoableCommand();
 		}
-		
+
+
 		[After]
-		public function reset():void {
-			_testHistory = null;
-			
+		public function runAfterEachTest() : void
+		{
+			history = null;
+			command1 = null;
 		}
-		
-		public function TestHistory() {
-			
-			
+
+
+		[Test]
+		public function testConstructor() : void
+		{
+			assertNotNull("constructor fail", history);
+		}
+
+
+		[Test]
+		public function testInitialState() : void
+		{
+			assertFalse("initial state canUndo fails", history.canUndo);
+			assertFalse("initial state canRedo fails", history.canRedo);
+		}
+
+
+		[Test]
+		public function testAdd() : void
+		{
+			history.add(command1);
+			assertTrue("canUndo fails after add", history.canUndo);
+			assertFalse("canRedo fails after add", history.canRedo);
+		}
+
+
+		[Test]
+		public function isAdded() : void
+		{
+			history.add(command1);
+			assertTrue("isAdded fails after add", history.isAdded(command1));
+		}
+
+
+		[Test]
+		public function isAddedAfterUndo() : void
+		{
+			history.add(command1);
+			history.undo();
+			assertTrue("isAdded fails after add", history.isAdded(command1));
+		}
+
+
+		[Test]
+		public function testCantAddNull() : void
+		{
+			history.add(null);
+			assertFalse("canUndo fails after add null", history.canUndo);
+		}
+
+
+		[Test (expects="flash.errors.IllegalOperationError")]
+		public function testCantAddCommandTwice() : void
+		{
+			history.add(command1);
+			history.add(command1);
+		}
+
+
+		[Test]
+		public function testAddUndo() : void
+		{
+			history.add(command1);
+			history.undo();
+			assertFalse("canUndo fails after add, undo", history.canUndo);
+			assertTrue("canRedo fails after add, undo", history.canRedo);
+			assertEquals("command state fail after add, undo", MockUndoableCommand.UNDONE, command1.state);
+		}
+
+
+		[Test]
+		public function testAddUndoRedo() : void
+		{
+			history.add(command1);
+			history.undo();
+			history.redo();
+			assertTrue("canUndo fails after add, undo, redo", history.canUndo);
+			assertFalse("canRedo fails after add, undo, redo", history.canRedo);
+			assertEquals("command state fail after add, undo", MockUndoableCommand.DONE, command1.state);
+		}
+
+
+		[Test]
+		public function testAddTwo() : void
+		{
+			history.add(command1);
+			history.add(command2);
+			assertEquals("num undos fail after add two", 2, history.undoLevels);
+		}
+
+
+		[Test]
+		public function testUndoTwo() : void
+		{
+			history.add(command1);
+			history.add(command2);
+			history.undo(2);
+			assertEquals("num undos fail after add two, undo two", 0, history.undoLevels);
+			assertEquals("num redos fail after add two, undo two", 2, history.redoLevels);
 		}
 		
 		[Test]
-		public function testInitialisation():void {
-			Assert.assertNotNull(_testHistory);
+		public function testClear():void
+		{
+			history.add(command1);
+			history.add(command2);
+			history.undo();
+			history.clear();
+			assertFalse("canUndo fails after clear", history.canUndo);
+			assertFalse("canRedo fails after clear", history.canRedo);
 		}
-		
-		[Test]
-		public function testStepForwardNoHistory():void {
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			var newPosition:uint = _testHistory.stepForward();
-			Assert.assertEquals(newPosition, 0);
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			
-		}
-		[Test]
-		public function testStepBackwardNoHistory():void {
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			var newPosition:uint = _testHistory.stepBackward();
-			Assert.assertEquals(newPosition, 0);
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			
-		}
-		
-		// Ensure rewind takes us forward to the last command
-		// and also KEEPS history items
-		[Test]
-		public function testFastForward():void {
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-		
-			newPosition = _testHistory.stepBackward();
-			_testHistory.stepBackward();
-			
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			var newPosition:uint = _testHistory.fastForward();
-			Assert.assertEquals(_testHistory.currentPosition, newPosition);
-			Assert.assertEquals(_testHistory.currentPosition, 2);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-		}
-		
-		
-		[Test]
-		// Ensure numberOfHistoryItems equals the number of items in history
-		public function testAddItems():void {
-			
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			var newPosition:uint = _testHistory.push(new MockUndoableCommandBase());
-			Assert.assertEquals(newPosition, 4);
-			Assert.assertEquals(_testHistory.numberOfHistoryItems, 4);
-			Assert.assertEquals(_testHistory.currentPosition, 4);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			
-		}
-		
-		[Test]
-		// Ensure rewind takes us back to the start
-		// but also KEEPS history items
-		public function testRewind():void {
-			// Add 4 Commands
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			
-			var newPosition:uint = _testHistory.rewind();
-			
-			Assert.assertEquals(_testHistory.numberOfHistoryItems, 4);
-			
-			Assert.assertEquals(newPosition, 0);
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-		}
-		
-		[Test]
-		// Test both return values of canStepBackward verifying 
-		// multiple calls work
-		public function testCanStepBackward():void {
-			Assert.assertFalse(_testHistory.canStepBackward);
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.rewind();
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertEquals(_testHistory.numberOfHistoryItems, 4);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-		}
-		
-		[Test]
-		// Test both return values of canStepForward, verifying 
-		// multiple calls work
-		public function testCanStepForward():void {
-			Assert.assertFalse(_testHistory.canStepForward);
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertFalse(_testHistory.canStepForward);
-			_testHistory.rewind();
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertEquals(_testHistory.numberOfHistoryItems, 3);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepForward);
-		}
-		
-		
-		[Test]
-		// Ensure current position tracks correctly
-		// after multiple calls to stepForward & stepBackward
-		public function testCurrentPosition():void {
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertEquals(_testHistory.currentPosition, 6);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 5);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 4);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 3);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 2);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 1);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			_testHistory.stepForward();
-			Assert.assertEquals(_testHistory.currentPosition, 1);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepForward();
-			Assert.assertEquals(_testHistory.currentPosition, 2);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 1);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertTrue(_testHistory.canStepForward);
-			Assert.assertFalse(_testHistory.canStepBackward);
-		}
-		
-		[Test]
-		// Ensure pushing a command to the middle of the
-		// history, wipes subsequent history
-		public function testPushWhileNotAtEndpoint():void {
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertEquals(_testHistory.currentPosition, 4);
-			
-			_testHistory.stepBackward();
-			_testHistory.stepBackward();
-			Assert.assertEquals(_testHistory.currentPosition, 2);
-			_testHistory.push(new MockUndoableCommandBase());
-			// Note it should wipe TWO commands from history, 
-            // replacing the first with new
-			Assert.assertEquals(_testHistory.currentPosition, 3);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			Assert.assertFalse(_testHistory.canStepForward);
-			_testHistory.rewind();
-			Assert.assertFalse(_testHistory.canStepBackward);
-			Assert.assertTrue(_testHistory.canStepForward);
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertEquals(_testHistory.currentPosition, 1);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			Assert.assertFalse(_testHistory.canStepForward);
-			
-		
-		}
-		
-		
-		[Test]
-		// Test forward/back/position settings while
-		// moving backwards & forwards
-		public function testComprehensive():void {
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			Assert.assertFalse(_testHistory.canStepForward);
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertEquals(_testHistory.currentPosition, 1);
-			_testHistory.rewind();
-			Assert.assertEquals(_testHistory.currentPosition, 0);
-			Assert.assertFalse(_testHistory.canStepBackward);
-			Assert.assertTrue(_testHistory.canStepForward);
-			_testHistory.stepForward();
-			Assert.assertEquals(_testHistory.currentPosition, 1);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-			_testHistory.push(new MockUndoableCommandBase());
-			Assert.assertEquals(_testHistory.currentPosition, 2);
-			Assert.assertFalse(_testHistory.canStepForward);
-			Assert.assertTrue(_testHistory.canStepBackward);
-		}
-		
-		[Test]
-		// Test forward/back/position settings while
-		// moving backwards & forwards
-		public function testGetCurrentCommand():void {
-			Assert.assertNull(_testHistory.currentCommand);
-			Assert.assertEquals(0, _testHistory.currentPosition);
-			var appleCommand:MockUndoableCommandBase = new MockUndoableCommandBase();
-			var bananaCommand:MockUndoableCommandBase = new MockUndoableCommandBase();
-			var pineappleCommand:MockUndoableCommandBase = new MockUndoableCommandBase();
-			
-			_testHistory.push(appleCommand);
-			_testHistory.push(bananaCommand);
-			_testHistory.push(pineappleCommand);
-			
-			
-			
-			Assert.assertEquals(pineappleCommand, _testHistory.currentCommand);
-			_testHistory.stepBackward();
-			Assert.assertEquals(bananaCommand, _testHistory.currentCommand);
-			_testHistory.stepForward();
-			Assert.assertEquals(pineappleCommand, _testHistory.currentCommand);
-			_testHistory.stepBackward();
-			_testHistory.stepBackward();
-			Assert.assertEquals(appleCommand, _testHistory.currentCommand);
-		}
-		
-		
 	}
 }

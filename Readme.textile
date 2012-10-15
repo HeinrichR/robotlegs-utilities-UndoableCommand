@@ -1,54 +1,70 @@
 h1. Undoable Commands and History Controller for the Robotlegs Framework
 
-Undoable Commands aims to provide the most useful functions you'd need for undo/redo functionality in a gui app. I've successfully used in on a number of private projects.
+This is a fork of Tim Oxleys robotlegs-utilities-UndoableCommand project.
+https://github.com/timoxley/robotlegs-utilities-UndoableCommand
+
+h2. This version
+
+A pretty major rewrite, I have changed the single history list in CommandHistory in favour of simplified list management in the form of two separate lists for undo and redo.
+
+Use of an interface ICommandHistory for history injection points. I have a project where I need two separate undo histories so needed the ability to vary the implementation of CommandHistory.  
+
+Complete events dispatched from the CommandHistory were removed. The UndoableCommand is intended to be used synchronously but asynchronous messaging capabilities could be implemented in subclasses if desired.
+
+Allow for num levels argument to be passed in UNDO/REDO events to do multiple undos.
+
+Changed HistoryEvent STEP_BACKWARD / STEP_FORWARD types to UNDO/REDO for clarity and since 'step' suggest a single step as opposed to multiple undos. 
+
 
 h2. Features
 
-* Keeps a linear history of executed Commands
 * Undo/Redo
-* Rewind/Fast Forward history
-* Rewrite history
-* Cancellable commands 
-* Gets the ladies and/or gents
+* Clear history
 
-h2. Important Classes
+h2. Events
 
-h3. UndoableCommandBase
+HistoryEvent.CLEAR
+Trigger clearing of all history
 
-Fairly barebones undoable command. You can use this with your own history controller or use the classes below to gain access to history control. 
+HistoryEvent.UNDO
+Trigger undo x num of levels
 
-h3. CommandHistory
+HistoryEvent.REDO
+Trigger redo x num of levels
 
-The history controller that provides the interface to move forward and backward through your command history.
+Note all events and corresponding commands are provided for convenience. You will still need to map them in a robotlegs context.
+e.g. 
+
+commandMap.mapEvent(HistoryEvent.UNDO, UndoCommand);
 
 h3. UndoableCommand
 
-This command handles adding itself to a provided/injected CommandHistory object.
+Use as a base class for your undoable commands. This command handles adding itself to a provided/injected ICommandHistory object.
 
-_See the generated asdocs provided in the repository for more information_
+h3. CommandHistory
+
+The history controller that provides the interface to undo and redo your command history.
+
 
 h2. Quickstart
 
-* Download the "latest release swc":http://github.com/secoif/robotlegs-utilities-UndoableCommand/downloads or feel free to download the source and compile for yourself, the test cases depend on FlexUnit4.
+* Download the "latest release swc":https://github.com/d3zza/robotlegs-utilities-UndoableCommand or feel free to download the source and compile for yourself, the test cases depend on FlexUnit4.
 * Include downloaded swc in your project
 * Create your command which extends UndoableCommand
-* Override the protected methods doExecute and undoExecute. doExecute should contain the code you want to execute when the command is fired. undoExecute should contain whatever code is needed to manually undo the actions performed by doExecute. The last line in both of these methods should be the call to super.doExecute()/undoExecute().
-* Put the following lines (+ necessary imports) into your Robotlegs context:
+* Override methods execute and unexecute: execute should contain the code you want to execute when the command is fired; unexecute should contain whatever code is needed to manually undo the actions performed by execute. After performing execute functionality, call super.execute() to have command add itself to the injected ICommandHistory implementation. Exit execute method without calling super.execute() will prevent command from being added to the history.
 
 	<pre>
 	// Create a CommandHistory to manages undo/redo history
 	injector.mapSingleton(CommandHistory);
 	// Events to trigger undo and redo
-	commandMap.mapEvent(HistoryEvent.STEP_FORWARD, StepForwardCommand, HistoryEvent);
-	commandMap.mapEvent(HistoryEvent.STEP_BACKWARD, StepBackwardCommand, HistoryEvent);
+	commandMap.mapEvent(HistoryEvent.UNDO, UndoCommand, HistoryEvent);
+	commandMap.mapEvent(HistoryEvent.REDO, RedoCommand, HistoryEvent);
 	</pre>
 
 * Map some event to the Command you created (just like you would with any normal robotlegs command)
-* Set a Button/Mediator to actually fire the HistoryEvent.STEP_FORWARD/BACKWARD events on the robotlegs event bus and you're done! :)
+* Set a Button/Mediator to actually fire the HistoryEvent.UNDO/REDO events on the robotlegs event bus and you're done! :)
 	
-h4. Cancelling a Command
+	<pre>
+	dispatch( new HistoryEvent( HistoryEvent.UNDO, 2 ) ); // undo last 2 commands
+	</pre>
 
-If you want to cancel a command you can call cancel() in your doExecute method and the command will not be added to the history stack (though you will have to ensure you don't actually make any changes to your data after you do this)	
-
-h4. TODO
-Implement a minimal linked list variation based on UndoableCommandBase with no history controller 

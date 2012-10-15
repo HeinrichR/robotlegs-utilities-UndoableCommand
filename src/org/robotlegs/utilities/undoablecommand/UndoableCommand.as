@@ -1,104 +1,45 @@
 package org.robotlegs.utilities.undoablecommand
 {
 
+	import org.robotlegs.utilities.undoablecommand.interfaces.IUndoableCommand;
 	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
-	
+
 	/**
 	 * This command handles adding itself to the provided/injected CommandHistory.
 	 * 
-	 * UndoableCommands are pushed to the CommandHistory only once the Command has been executed, 
-	 * and are removed once the Command has been undone. Undoable commands can be cancelled by calling cancel() from within
-	 * their doExecute() function, and they will not be added to the history.
+	 * Override methods execute and unexecute:
+	 * execute should contain the code you want to execute when the command is fired;
+	 * unexecute should contain whatever code is needed to manually undo the actions performed by execute.
+	 * After performing execute functionality, call super.execute() to have command add itself to the injected ICommandHistory implementation.
+	 * Exit execute method without calling super.execute() to prevent command from being added to the history.
 	 * 
 	 * All functions assume the CommandHistory dependency has been provided as the public property 'history'.
 	 */
-	public class UndoableCommand extends UndoableCommandBase
+	public class UndoableCommand implements IUndoableCommand
 	{
 
-		/**
-		 * @private
-		 * Flag true after this Command has been pushed to CommandHistory
-		 */
-		private var hasRegisteredWithHistory:Boolean;	
-		
-		/**
-		 * @private
-		 * Flag true after this Command has been stepped back by CommandHistory
-		 */
-		private var hasSteppedBack:Boolean;
-		
-		protected var isCancelled:Boolean = false;
-		
 		/**
 		 * Reference to the ICommandHistory being used by this Command
 		 */
 		[Inject]
-		public var history:ICommandHistory;
-		
+		public var history : ICommandHistory;
+
+
 		/**
-		 * @inheritDoc 
+		 * subclasses should override execute and call super.execute() to be added to the undo history
 		 */
-		public function UndoableCommand(doFunction:Function = null, undoFunction:Function = null) {
-			super(doFunction, undoFunction);
-		}
-		
-		/**
-		 * Call this function in your doExecute method to prevent this item from being added to the history stack.
-		 * TODO: Throw an error if cancelling within a redo. Currently assumes if the cancel condition did not fire
-		 * on the first run, they will pass on subsequent executions. This is faulty.
-		 */
-		public function cancel():void {
-			isCancelled = true;
-		}
-		
-		/**
-		 * Executes the command.
-		 * Override this function in your subclasses to implement your command's actions.
-		 * You may call cancel() at any point in this function to prevent it from being added 
-		 * to the history stack, but remember that execution does not stop when you call cancel and
-		 * you will need to ensure the doExecute method did not actually make any changes.
-		 * 
-		 * Ensure you call super.doExecute() at the end of your subclassed method.
-		 * Note command is only automatically pushed to history once we try to execute this command
-		 * @inheritDoc
-		 * @see undoExecute
-		 */
-		override protected function doExecute():void {
-			// Only push to history once we actually try to execute this command
-			if (!hasRegisteredWithHistory && !isCancelled) {
-				hasRegisteredWithHistory = true;
-				hasExecuted = true;
-				history.push(this);
+		public function execute() : void
+		{
+			if ( history )
+			{
+				history.add(this);
 			}
-			super.doExecute();
-		}
-		
-		/**
-		 * Override this function in your subclasses to implement the undo of the actions performed in doExecute(). Ensure you call super.undoExecute() at the end of your subclassed method.
-		 * @inheritDoc
-		 * @see doExecute
-		 * @throws Error Prevents history corruption by throwing error if trying to undo this command and it's not at the top of the history (i.e. next to be undone). 
-		 */
-		override protected function undoExecute():void {
-			if (hasExecuted) {
-				this.hasExecuted = false;
-				
-				if (!hasSteppedBack) {
-					hasSteppedBack = true;
-					if (history.currentCommand != this) {
-						throw new Error("Cannot undo command unless this command is first in command history!");
-					}
-					
-					history.stepBackward();
-					hasSteppedBack = false;
-				}
-				
-			}
-			if (isCancelled) {
-				throw new Error("Trying to undo a cancelled command!");
-			}
-			super.undoExecute();
 		}
 
+
+		public function unexecute() : void
+		{
+			// implement in subclasses
+		}
 	}
 }

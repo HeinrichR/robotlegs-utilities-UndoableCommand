@@ -1,30 +1,36 @@
 package org.robotlegs.utilities.undoablecommand.interfaces
 {
-	import flash.events.IEventDispatcher;
 	/**
-	 * @author derek
+	 * ICommandHistory interface
 	 */
 	public interface ICommandHistory
 	{
-		function reset():void;
-		
-		function get canStepForward():Boolean;
-		
-		function get canStepBackward():Boolean;
-		
-		function stepForward():uint;
-		
-		function stepBackward():uint;
-		
-		function rewind(numTimes:uint = 0):uint;
-		
-		function fastForward(numTimes:uint = 0):uint;
-		
-		function get numberOfHistoryItems():uint;
-		
-		function push(command:IUndoableCommand):uint;
-		
-		function get currentCommand():IUndoableCommand;
 
+		function clear() : void;
+
+
+		function undo(levels : int = 1) : void;
+
+
+		function redo(levels : int = 1) : void;
+
+
+		function add(command : IUndoableCommand) : void;
+
+
+		function isAdded( command : IUndoableCommand ):Boolean;
+		
+		
+		function get canUndo() : Boolean;
+
+
+		function get canRedo() : Boolean;
+
+
+		function get undoLevels() : int;
+
+
+		function get redoLevels() : int;
+		
 	}
 }
