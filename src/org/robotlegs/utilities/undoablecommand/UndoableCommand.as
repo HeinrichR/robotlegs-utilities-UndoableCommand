@@ -1,6 +1,4 @@
-package org.robotlegs.utilities.undoablecommand
-{
-	import mx.messaging.messages.ErrorMessage;
+package org.robotlegs.utilities.undoablecommand {
 	
 	/**
 	 * This command handles adding itself to the provided/injected CommandHistory.

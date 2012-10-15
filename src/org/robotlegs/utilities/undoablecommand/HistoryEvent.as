@@ -68,6 +68,21 @@ package org.robotlegs.utilities.undoablecommand
 		 */
 		public static const FAST_FORWARD_COMPLETE:String = "fastForwardComplete";
 		
+		
+		/**
+		 * Dezza added reset features
+		 * You should map this event to a command to trigger a history reset action.
+		 * 
+		 * Provided for convenience. Is not fired internally.
+		 */
+		public static const RESET_HISTORY:String = "resetHistory";
+		
+		/**
+		 * HistoryEvent with this type will be fired when history is reset.
+		 */
+		public static const RESET_HISTORY_COMPLETE:String = "resetHistoryComplete";
+		
+		
 		public function HistoryEvent(type:String, command:IUndoableCommand = null) {
 			super(type, command);
 		}

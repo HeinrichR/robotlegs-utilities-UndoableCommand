@@ -15,6 +15,11 @@ package org.robotlegs.utilities.undoablecommand.interfaces
 		function undo():void;
 		
 		/**
+		 * Called when the command is permanently removed from the history stack
+		 */
+		function release():void;
+		 
+		/**
 		 * Fire events when you execute or undo
 		 */
 		function get eventDispatcher():IEventDispatcher;

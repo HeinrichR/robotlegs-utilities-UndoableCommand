@@ -1,8 +1,8 @@
-package org.robotlegs.utilities.undoablecommand
-{
-	import flash.events.IEventDispatcher;
-	
+package org.robotlegs.utilities.undoablecommand {
+
 	import org.robotlegs.utilities.undoablecommand.interfaces.*;
+
+	import flash.events.IEventDispatcher;
 	
 	/**
 	 * Provides an interface to manage undo/redo history and fires events on the eventDispatcher 
@@ -32,6 +32,19 @@ package org.robotlegs.utilities.undoablecommand
 		public function CommandHistory() {
 			_historyStack = new Vector.<IUndoableCommand>();
 			currentPosition = 0;
+		}
+		
+		/**
+		 * dezza added ability to reset history
+		 */
+		public function reset():void {
+			var i : int = numberOfHistoryItems;
+			while ( --i >= 0 ) {
+				_historyStack[i].release();
+			}
+			_historyStack = new Vector.<IUndoableCommand>();
+			currentPosition = 0;
+			this.eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.RESET_HISTORY_COMPLETE));
 		}
 		
 		/** 
@@ -166,6 +179,13 @@ package org.robotlegs.utilities.undoablecommand
 		public function push(command:IUndoableCommand):uint {
 			
 			if (currentPosition != numberOfHistoryItems) {
+				
+				// dezza added call on commands to be released
+				var i : int = numberOfHistoryItems;
+				while ( --i >= currentPosition ) {
+					_historyStack[i].release();
+				}
+				
 				_historyStack = _historyStack.slice(0, currentPosition);	
 			}
 			

@@ -105,5 +105,11 @@ package org.robotlegs.utilities.undoablecommand
 		public function set eventDispatcher(value:IEventDispatcher):void {
 			_eventDispatcher = value;
 		}
+
+		/**
+		 * Subclasses may override
+		 */
+		public function release() : void {
+		}
 	}
 }
