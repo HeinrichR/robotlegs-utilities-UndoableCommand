@@ -32,7 +32,8 @@ package org.robotlegs.utilities.undoablecommand
 		/**
 		 * Reference to the ICommandHistory being used by this Command
 		 */
-		private var _history:ICommandHistory;
+		[Inject]
+		public var history:ICommandHistory;
 		
 		/**
 		 * @inheritDoc 
@@ -99,20 +100,5 @@ package org.robotlegs.utilities.undoablecommand
 			super.undoExecute();
 		}
 
-		/**
-		 * the ICommandHistory implementation
-		 * 
-		 * d3zza added removed CommandHistory injection point and provided setters to allow alternate CommandHistory Implementation to be injected into UndoableCommand subclasses
-		 */
-		public function get history() : ICommandHistory
-		{
-			return _history;
-		}
-
-
-		public function set history(history : ICommandHistory) : void
-		{
-			_history = history;
-		}
 	}
 }
