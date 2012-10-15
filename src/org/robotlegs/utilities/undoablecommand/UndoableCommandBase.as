@@ -1,9 +1,9 @@
 package org.robotlegs.utilities.undoablecommand
 {
-	import flash.events.EventDispatcher;
-	import flash.events.IEventDispatcher;
-	
+
 	import org.robotlegs.utilities.undoablecommand.interfaces.IUndoableCommand;
+
+	import flash.events.IEventDispatcher;
 		
 	public class UndoableCommandBase implements IUndoableCommand
 	{
@@ -27,7 +27,6 @@ package org.robotlegs.utilities.undoablecommand
 		
 		private var _eventDispatcher:IEventDispatcher;
 		
-		private static const EXECUTE:String = "doExecuteCommand";
 		
 		/**
 		 * Creates a new UndoableCommand

@@ -1,4 +1,7 @@
-package org.robotlegs.utilities.undoablecommand {
+package org.robotlegs.utilities.undoablecommand
+{
+
+	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
 	
 	/**
 	 * This command handles adding itself to the provided/injected CommandHistory.
@@ -27,10 +30,9 @@ package org.robotlegs.utilities.undoablecommand {
 		protected var isCancelled:Boolean = false;
 		
 		/**
-		 * Reference to the CommandHistory being used by this Command
+		 * Reference to the ICommandHistory being used by this Command
 		 */
-		[Inject]
-		public var history:CommandHistory;
+		private var _history:ICommandHistory;
 		
 		/**
 		 * @inheritDoc 
@@ -96,17 +98,21 @@ package org.robotlegs.utilities.undoablecommand {
 			}
 			super.undoExecute();
 		}
-		
+
 		/**
-		 * @private
-		 * Checks if this command has added itself to the command history.
-		 * Ensures we don't let this Command push to the CommandHistory more than once.
+		 * the ICommandHistory implementation
+		 * 
+		 * d3zza added removed CommandHistory injection point and provided setters to allow alternate CommandHistory Implementation to be injected into UndoableCommand subclasses
 		 */
-		private function registerIfRequired():void {
-			if (!hasRegisteredWithHistory) {
-				hasRegisteredWithHistory = true;
-				history.push(this);
-			}
+		public function get history() : ICommandHistory
+		{
+			return _history;
+		}
+
+
+		public function set history(history : ICommandHistory) : void
+		{
+			_history = history;
 		}
 	}
 }

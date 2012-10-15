@@ -8,7 +8,7 @@ package org.robotlegs.utilities.undoablecommand {
 	 * Provides an interface to manage undo/redo history and fires events on the eventDispatcher 
 	 * when history events occur. 
 	 */
-	public class CommandHistory
+	public class CommandHistory implements ICommandHistory
 	{		
 		/**
 		 * Command history data store.
