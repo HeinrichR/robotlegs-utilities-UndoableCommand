@@ -7,6 +7,7 @@
 package org.robotlegs.utilities.undoablecommand
 {
 
+	import org.robotlegs.mvcs.Command;
 	import org.robotlegs.utilities.undoablecommand.interfaces.IUndoableCommand;
 	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
 
@@ -21,7 +22,7 @@ package org.robotlegs.utilities.undoablecommand
 	 * 
 	 * All functions assume the CommandHistory dependency has been provided as the public property 'history'.
 	 */
-	public class UndoableCommand implements IUndoableCommand
+	public class UndoableCommand extends Command implements IUndoableCommand
 	{
 
 		/**
@@ -34,7 +35,7 @@ package org.robotlegs.utilities.undoablecommand
 		/**
 		 * subclasses should override execute and call super.execute() to be added to the undo history
 		 */
-		public function execute() : void
+		override public function execute() : void
 		{
 			if ( history )
 			{
