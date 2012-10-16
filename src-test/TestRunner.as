@@ -44,8 +44,8 @@ package
 			// core.run( request );
 
 			var testsToRun : Array = new Array();
-//			testsToRun.push(TestUndoableCommand);
-//			testsToRun.push(TestHistory);
+			testsToRun.push(TestUndoableCommand);
+			testsToRun.push(TestHistory);
 			testsToRun.push(TestEvents);
 				
 			core.run(testsToRun);

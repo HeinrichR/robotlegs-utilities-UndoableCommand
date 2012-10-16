@@ -87,6 +87,16 @@ package tests
 
 
 		[Test]
+		public function addClearsRedo() : void
+		{
+			history.add(command1);
+			history.undo();
+			history.add(command2);
+			assertEquals("test add clears redo, num redos fails", 0, history.redoLevels);
+		}
+		
+
+		[Test]
 		public function testCantAddNull() : void
 		{
 			history.add(null);
