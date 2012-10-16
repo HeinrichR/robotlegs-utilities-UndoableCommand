@@ -14,11 +14,14 @@ package org.robotlegs.utilities.undoablecommand
 
 	import flash.errors.IllegalOperationError;
 
+	[Event(name="onHistoryChanged", type="org.robotlegs.utilities.undoablecommand.event.HistoryEvent")]
+	
 	/**
 	 * Manages an undo and redo list of IUndoableCommand instances 
 	 */
 	public class CommandHistory extends Actor implements ICommandHistory
 	{
+		
 		protected var _undoCommands : Vector.<IUndoableCommand>;
 
 		protected var _redoCommands : Vector.<IUndoableCommand>;

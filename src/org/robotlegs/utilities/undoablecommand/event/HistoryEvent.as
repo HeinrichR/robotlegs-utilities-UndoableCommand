@@ -9,13 +9,13 @@ package org.robotlegs.utilities.undoablecommand.event
 	 */
 	public class HistoryEvent extends Event
 	{
-		public static const CLEAR : String = "HistoryEvent.CLEAR";
+		public static const CLEAR : String = "onHistoryClear";
 
-		public static const UNDO : String = "HistoryEvent.UNDO";
+		public static const UNDO : String = "onHistoryUndo";
 
-		public static const REDO : String = "HistoryEvent.REDO";
+		public static const REDO : String = "onHistoryRedo";
 
-		public static const CHANGED : String = "HistoryEvent.CHANGED";
+		public static const CHANGED : String = "onHistoryChanged";
 
 		private var _levels : uint;
 
