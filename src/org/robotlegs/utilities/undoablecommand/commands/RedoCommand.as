@@ -7,8 +7,11 @@
 package org.robotlegs.utilities.undoablecommand.commands
 {
 
+	import org.robotlegs.mvcs.Command;
 	import org.robotlegs.utilities.undoablecommand.event.HistoryEvent;
 	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
+
+	import flash.events.Event;
 
 	/**
 	 * Map this command to the HistoryEvent.REDO event to trigger redo action(s).
@@ -16,15 +19,13 @@ package org.robotlegs.utilities.undoablecommand.commands
 	 * 
 	 * Pass number of redo levels as an integer data argument to the HistoryEvent to perfom multiple redos
 	 */
-	public class RedoCommand
+	public class RedoCommand extends Command
 	{
-
 		[Inject]
 		public var commandHistory : ICommandHistory;
 
 		[Inject]
-		public var event : HistoryEvent;
-
+		public var event : Event;
 
 		public function RedoCommand()
 		{
@@ -34,10 +35,19 @@ package org.robotlegs.utilities.undoablecommand.commands
 		/**
 		 * execute redo
 		 */
-		public function execute() : void
+		override public function execute() : void
 		{
-			var levels : int = int(event.data);
-			if ( levels < 1 ) levels = 1;
+			var levels : int;
+
+			if ( event is HistoryEvent )
+			{
+				levels = (event as HistoryEvent).levels > 1 ? (event as HistoryEvent).levels : 1;
+			}
+			else
+			{
+				levels = 1;
+			}
+
 			commandHistory.redo(levels);
 		}
 	}

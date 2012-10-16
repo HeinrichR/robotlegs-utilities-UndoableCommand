@@ -41,6 +41,7 @@ package tests
 		{
 			history = null;
 			command1 = null;
+			command2 = null;
 		}
 
 

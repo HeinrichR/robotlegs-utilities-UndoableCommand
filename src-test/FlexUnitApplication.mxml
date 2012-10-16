@@ -7,6 +7,7 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" xmlns:flexui="flexunit.flexui.*" creationComplete="onCreationComplete()">
 	<fx:Script>
 		<![CDATA[
+			import tests.TestEvents;
 			import tests.TestUndoableCommand;
 			import tests.TestManagedUndoableCommand;
 			import tests.TestHistoryEvents;
@@ -17,6 +18,7 @@
 				var testsToRun:Array = new Array();
 				testsToRun.push(tests.TestHistory);
 				testsToRun.push(tests.TestUndoableCommand);
+				testsToRun.push(tests.TestEvents);
 				return testsToRun;
 			}
 			

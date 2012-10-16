@@ -14,7 +14,6 @@ package tests
 	 */
 	public class MockUndoableCommand extends UndoableCommand
 	{
-
 		public static const DONE : String = "done";
 
 		public static const UNDONE : String = "undone";
@@ -23,7 +22,6 @@ package tests
 		 * @private
 		 */
 		private var _state : String;
-
 
 		public function MockUndoableCommand()
 		{
