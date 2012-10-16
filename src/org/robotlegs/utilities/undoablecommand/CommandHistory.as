@@ -7,15 +7,17 @@
 package org.robotlegs.utilities.undoablecommand
 {
 
-	import flash.errors.IllegalOperationError;
-
+	import org.robotlegs.utilities.undoablecommand.event.HistoryEvent;
+	import org.robotlegs.mvcs.Actor;
 	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
 	import org.robotlegs.utilities.undoablecommand.interfaces.IUndoableCommand;
+
+	import flash.errors.IllegalOperationError;
 
 	/**
 	 * Manages an undo and redo list of IUndoableCommand instances 
 	 */
-	public class CommandHistory implements ICommandHistory
+	public class CommandHistory extends Actor implements ICommandHistory
 	{
 		protected var _undoCommands : Vector.<IUndoableCommand>;
 
@@ -43,6 +45,7 @@ package org.robotlegs.utilities.undoablecommand
 					var command : IUndoableCommand = _undoCommands.pop();
 					command.unexecute();
 					_redoCommands.push(command);
+					notifyChanged();
 				}
 			}
 		}
@@ -65,6 +68,7 @@ package org.robotlegs.utilities.undoablecommand
 					command.execute();
 					execCommand = null;
 					_undoCommands.push(command);
+					notifyChanged();
 				}
 			}
 		}
@@ -119,6 +123,7 @@ package org.robotlegs.utilities.undoablecommand
 			}
 			_undoCommands.push(command);
 			_redoCommands = new Vector.<IUndoableCommand>();
+			notifyChanged();
 		}
 
 
@@ -152,6 +157,22 @@ package org.robotlegs.utilities.undoablecommand
 		public function get redoLevels() : int
 		{
 			return _redoCommands.length;
+		}
+
+
+		/**
+		 * dispatch changed event
+		 */
+		protected function notifyChanged() : void
+		{
+			if( !eventDispatcher ) return;
+			dispatch(new HistoryEvent(HistoryEvent.CHANGED));
+		}
+
+
+		public function toString() : String
+		{
+			return this + " undos = " + _undoCommands.length + " redos = " + _redoCommands.length;
 		}
 	}
 }

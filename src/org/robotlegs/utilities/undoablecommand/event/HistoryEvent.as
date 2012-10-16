@@ -15,6 +15,8 @@ package org.robotlegs.utilities.undoablecommand.event
 
 		public static const REDO : String = "HistoryEvent.REDO";
 
+		public static const CHANGED : String = "HistoryEvent.CHANGED";
+
 		private var _levels : uint;
 
 		public function HistoryEvent(type : String, levels : uint = 1)

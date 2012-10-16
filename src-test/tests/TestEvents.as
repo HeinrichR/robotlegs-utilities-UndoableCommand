@@ -8,6 +8,7 @@ package tests
 {
 
 	import org.flexunit.asserts.assertEquals;
+	import org.flexunit.asserts.assertTrue;
 	import org.fluint.uiImpersonation.UIImpersonator;
 	import org.robotlegs.utilities.undoablecommand.event.HistoryEvent;
 	import org.robotlegs.utilities.undoablecommand.interfaces.ICommandHistory;
@@ -28,6 +29,12 @@ package tests
 		private var context : MockHistoryContext;
 
 		private var eventDispatcher : IEventDispatcher;
+
+		private var _changedAfterAdd : Boolean;
+
+		private var _changedAfterUndo : Boolean;
+
+		private var _changedAfterRedo : Boolean;
 
 		[Before]
 		public function runBeforeEachTest() : void
@@ -168,8 +175,8 @@ package tests
 
 			assertEquals("test fire redo twice, redo levels fail", 0, history.redoLevels);
 		}
-		
-		
+
+
 		[Test]
 		public function testFireClear() : void
 		{
@@ -178,12 +185,77 @@ package tests
 			eventDispatcher.dispatchEvent(new Event(MockHistoryContext.EXEC_UNDOABLE_COMMAND));
 
 			eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.UNDO));
-			
+
 			eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.CLEAR));
 
 			assertEquals("test fire clear, undo levels fail", 0, history.undoLevels);
 
 			assertEquals("test fire clear, redo levels fail", 0, history.redoLevels);
+		}
+
+
+		[Test]
+		public function testChangedEventForAdd() : void
+		{
+			eventDispatcher.addEventListener(HistoryEvent.CHANGED, handleChangedAfterAdd);
+
+			eventDispatcher.dispatchEvent(new Event(MockHistoryContext.EXEC_UNDOABLE_COMMAND));
+
+			eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.UNDO));
+
+			assertTrue("changed event not received after add", _changedAfterAdd);
+		}
+
+
+		private function handleChangedAfterAdd(e : HistoryEvent) : void
+		{
+			_changedAfterAdd = true;
+
+			eventDispatcher.removeEventListener(HistoryEvent.CHANGED, handleChangedAfterAdd);
+		}
+
+
+		[Test]
+		public function testChangedEventForUndo() : void
+		{
+			eventDispatcher.dispatchEvent(new Event(MockHistoryContext.EXEC_UNDOABLE_COMMAND));
+
+			eventDispatcher.addEventListener(HistoryEvent.CHANGED, handleChangedAfterUndo);
+
+			eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.UNDO));
+
+			assertTrue("changed event not received after undo", _changedAfterUndo);
+		}
+
+
+		private function handleChangedAfterUndo(e : HistoryEvent) : void
+		{
+			_changedAfterUndo = true;
+
+			eventDispatcher.removeEventListener(HistoryEvent.CHANGED, handleChangedAfterUndo);
+		}
+
+
+		[Test]
+		public function testChangedEventForRedo() : void
+		{
+			eventDispatcher.dispatchEvent(new Event(MockHistoryContext.EXEC_UNDOABLE_COMMAND));
+
+			eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.UNDO));
+
+			eventDispatcher.addEventListener(HistoryEvent.CHANGED, handleChangedAfterRedo);
+
+			eventDispatcher.dispatchEvent(new HistoryEvent(HistoryEvent.REDO));
+
+			assertTrue("changed event not received after redo", _changedAfterRedo);
+		}
+
+
+		private function handleChangedAfterRedo(e : HistoryEvent) : void
+		{
+			_changedAfterRedo = true;
+
+			eventDispatcher.removeEventListener(HistoryEvent.CHANGED, handleChangedAfterRedo);
 		}
 	}
 }

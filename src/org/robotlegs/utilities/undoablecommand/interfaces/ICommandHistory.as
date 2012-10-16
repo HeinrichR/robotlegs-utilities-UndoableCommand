@@ -6,6 +6,7 @@
  */
 package org.robotlegs.utilities.undoablecommand.interfaces
 {
+	import flash.events.IEventDispatcher;
 	/**
 	 * ICommandHistory interface
 	 */
@@ -37,6 +38,10 @@ package org.robotlegs.utilities.undoablecommand.interfaces
 
 
 		function get redoLevels() : int;
+		
+		
+		function get eventDispatcher():IEventDispatcher;
+		
 		
 	}
 }
