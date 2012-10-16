@@ -19,6 +19,7 @@
       <arg value="-output=${bin.loc}/undoablecommmand.swc"/>
 <!-- We want all the org package classes in the SWC being built. -->
       <arg value="-include-sources=${main.src.loc}/org"/>
+      <arg value="-external-library-path+=${lib.loc}"/>
 <!-- Include classes from SWCs in this folder, but only the ones we use. -->
       <!-- <arg value="-library-path+=${lib.loc}"/> -->
 <!-- Keep the magic alive. -->
