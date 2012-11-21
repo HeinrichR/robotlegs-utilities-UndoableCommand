@@ -7,9 +7,9 @@ h2. This version
 
 A pretty major rewrite, I have changed the single history list in CommandHistory in favour of simplified list management in the form of two separate lists for undo and redo.
 
-Use of an interface ICommandHistory for history injection points. I have a project where I need two separate undo histories so needed the ability to vary the implementation of CommandHistory.  
+Use of an interface ICommandHistory for history injection points, so that alternate implementation can be injected.
 
-Complete events dispatched from the CommandHistory were removed. The UndoableCommand is intended to for synchronous use i.e. execute/unexecute commands can be executed immediately.
+Step complete events dispatched from the CommandHistory were removed. The UndoableCommand is intended to for synchronous use i.e. execute/unexecute commands can be executed immediately.
 
 Allow for num levels argument to be passed in UNDO/REDO events to trigger multiple undos/redos.
 

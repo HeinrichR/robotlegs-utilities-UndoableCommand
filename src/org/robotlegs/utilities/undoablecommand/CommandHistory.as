@@ -30,7 +30,8 @@ package org.robotlegs.utilities.undoablecommand
 
 		public function CommandHistory()
 		{
-			clear();
+			_undoCommands = new Vector.<IUndoableCommand>();
+			_redoCommands = new Vector.<IUndoableCommand>();
 		}
 
 
@@ -106,6 +107,7 @@ package org.robotlegs.utilities.undoablecommand
 		{
 			_undoCommands = new Vector.<IUndoableCommand>();
 			_redoCommands = new Vector.<IUndoableCommand>();
+			notifyChanged();
 		}
 
 
